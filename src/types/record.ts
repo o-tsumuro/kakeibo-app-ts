@@ -1,4 +1,4 @@
-export type RecordType = 'income' | 'expense';
+export type RecordType = 'income' | 'expense' | 'transfer';
 
 export type PaymentSource = 'wallet' | 'bank';
 
@@ -7,12 +7,24 @@ export type Category = {
   name: string;
 };
 
-export type RecordItem = {
+export type BaseRecord = {
   id: string;
   type: RecordType;
-  categoryId: string;
   amount: number;
   date: string;
-  source: PaymentSource;
   memo?: string;
 };
+
+export type StandartRecord = BaseRecord & {
+  type: 'income' | 'expense';
+  categoryId: string;
+  source: PaymentSource;
+};
+
+export type TransferRecord = BaseRecord & {
+  type: 'transfer';
+  from: PaymentSource;
+  to: PaymentSource;
+}
+
+export type RecordItem = StandartRecord | TransferRecord;
