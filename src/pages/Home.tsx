@@ -97,7 +97,7 @@ const Home = () => {
         />
         <input
           type="date"
-          placeholder={date}
+          value={date}
           onChange={(e) => setDate(e.target.value)}
         />
         <input
