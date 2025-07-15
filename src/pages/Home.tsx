@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import type { RecordItem, RecordType, PaymentSource } from '../types/record';
+import type { RecordType, PaymentSource } from '../types/record';
 import { v4 as uuidv4 } from 'uuid';
+import { useRecordContext } from '../contexts/RecordContext';
 
 const Home = () => {
-  const [records, setRecords] = useState<RecordItem[]>([]);
+  const { categories, addRecord, records } = useRecordContext();
 
   const [type, setType] = useState<RecordType>('expense');
   const [amount, setAmount] = useState('');
@@ -11,8 +12,7 @@ const Home = () => {
   const [memo, setMemo] = useState('');
 
   const [source, setSource] = useState<PaymentSource>('wallet');
-  const categoryId = 'uncategorized';
-
+  const [categoryId, setCategoryId] = useState<string>('');
   const [from, setFrom] = useState<PaymentSource>('wallet');
   const [to, setTo] = useState<PaymentSource>('bank');
 
@@ -28,30 +28,28 @@ const Home = () => {
       memo: memo || undefined,
     };
 
-    let newRecord: RecordItem;
-
     if (type === 'transfer') {
       if (from === to) return alert('出金元と入金先は異なる必要があります');
-      newRecord = {
+      addRecord({
         ...base,
         type: 'transfer',
         from,
         to,
-      };
+      });
     } else {
-      newRecord = {
+      if (!categoryId) return alert('カテゴリを選んでください');
+      addRecord({
         ...base,
         type,
         categoryId,
         source,
-      };
+      });
     }
 
-    setRecords((prev) => [...prev, newRecord]);
-
     setAmount('');
-    setMemo('');
     setDate('');
+    setMemo('');
+    setCategoryId('');
   };
 
   return (
@@ -59,53 +57,15 @@ const Home = () => {
       <h2>家計簿 - 登録</h2>
 
       <div>
-        <label>
-          <input
-            type="radio"
-            value="expense"
-            checked={type === 'expense'}
-            onChange={() => setType('expense')}
-          />
-          支出
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="income"
-            checked={type === 'income'}
-            onChange={() => setType('income')}
-          />
-          収入
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="transfer"
-            checked={type === 'transfer'}
-            onChange={() => setType('transfer')}
-          />
-          振替
-        </label>
+        <label><input type="radio" value="expense" checked={type === 'expense'} onChange={() => setType('expense')} />支出</label>
+        <label><input type="radio" value="income" checked={type === 'income'} onChange={() => setType('income')} />収入</label>
+        <label><input type="radio" value="transfer" checked={type === 'transfer'} onChange={() => setType('transfer')} />振替</label>
       </div>
 
       <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="number"
-          placeholder="金額"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="メモ"
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-        />
+        <input type="number" placeholder="金額" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <input type="text" placeholder="メモ" value={memo} onChange={(e) => setMemo(e.target.value)} />
       </div>
 
       {type === 'transfer' ? (
@@ -121,6 +81,16 @@ const Home = () => {
         </div>
       ) : (
         <div>
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+            <option value="">カテゴリを選択</option>
+            {categories
+              .filter((c) => c.name.includes(`[${type}]`))
+              .map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+          </select>
           <select value={source} onChange={(e) => setSource(e.target.value as PaymentSource)}>
             <option value="wallet">財布</option>
             <option value="bank">銀行</option>
@@ -136,10 +106,9 @@ const Home = () => {
           <li key={record.id}>
             {record.date} | {record.type === 'income' ? '+' : record.type === 'expense' ? '-' : '⇄'}
             {record.amount}円
-
             {record.type === 'transfer'
               ? `(${record.from} → ${record.to})`
-              : `(${record.source})`}
+              : `(${record.source}) カテゴリ: ${record.categoryId}`}
             {record.memo && ` : ${record.memo}`}
           </li>
         ))}
