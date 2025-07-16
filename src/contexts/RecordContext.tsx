@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Category, RecordItem } from '../types/record';
 
@@ -18,9 +18,39 @@ export const useRecordContext = () => {
   return context;
 };
 
+const STORAGE_KEY = {
+  categories: 'myapp_categories',
+  records: 'myapp_records',
+}
+
 export const RecordProvider = ({ children }: { children: ReactNode }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [records, setRecords] = useState<RecordItem[]>([]);
+
+  useEffect(() => {
+    const savedCategories = localStorage.getItem(STORAGE_KEY.categories);
+    const savedRecords = localStorage.getItem(STORAGE_KEY.records);
+
+    if (savedCategories) {
+      try {
+        setCategories(JSON.parse(savedCategories) as Category[]);
+      } catch {}
+    }
+
+    if (savedRecords) {
+      try {
+        setRecords(JSON.parse(savedRecords) as RecordItem[]);
+      } catch {}
+    } 
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY.categories, JSON.stringify(categories));
+  }, [categories]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY.records, JSON.stringify(records));
+  }, [records]);
 
   const addCategory = (category: Category) => {
     setCategories((prev) => [...prev, category]);
