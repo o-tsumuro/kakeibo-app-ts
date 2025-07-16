@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RecordType, PaymentSource } from '../types/record';
 import { v4 as uuidv4 } from 'uuid';
 import { useRecordContext } from '../contexts/RecordContext';
+import { getCategoryName } from '../utils/getCategoryName';
 
 const Home = () => {
   const { categories, addRecord, records } = useRecordContext();
@@ -108,7 +109,7 @@ const Home = () => {
             {record.amount}円
             {record.type === 'transfer'
               ? `(${record.from} → ${record.to})`
-              : `(${record.source}) カテゴリ: ${record.categoryId}`}
+              : `(${record.source}) カテゴリ: ${getCategoryName(record.categoryId, categories)}`}
             {record.memo && ` : ${record.memo}`}
           </li>
         ))}

@@ -1,9 +1,10 @@
 import { useRecordContext } from '../contexts/RecordContext';
 import { useState } from 'react';
 import type { RecordType } from '../types/record';
+import { getCategoryName } from '../utils/getCategoryName';
 
 const RecordList = () => {
-  const { records } = useRecordContext();
+  const { records, categories } = useRecordContext();
   const [filterType, setFilterType] = useState<RecordType | 'all'>('all');
   const [filterMonth, setFilterMonth] = useState('');
 
@@ -42,7 +43,7 @@ const RecordList = () => {
             {record.amount}円
             {record.type === 'transfer'
               ? `(${record.from} → ${record.to})`
-              : `(${record.source})カテゴリID: ${record.categoryId}`}
+              : `(${record.source})カテゴリ: ${getCategoryName(record.categoryId, categories)}`}
             {record.memo && ` ：${record.memo}`}
           </li>
         ))}
