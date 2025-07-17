@@ -8,12 +8,19 @@ const RecordList = () => {
   const [filterType, setFilterType] = useState<RecordType | 'all'>('all');
   const [filterMonth, setFilterMonth] = useState('');
 
-  const filtered = records.filter((r) => {
-    const matchType = filterType === 'all' || r.type === filterType;
-    const matchMonth =
-      !filterMonth || r.date.startsWith(filterMonth);
-    return matchType && matchMonth;
-  });
+  const filtered = [...records]
+    .filter((r) => {
+      const matchType = filterType === 'all' || r.type === filterType;
+      const matchMonth = !filterMonth || r.date.startsWith(filterMonth);
+      return matchType && matchMonth;
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const total = filtered.reduce((sum, r) => {
+    if (r.type === 'income') return sum + r.amount;
+    if (r.type === 'expense') return sum - r.amount;
+    return sum;
+  }, 0);
 
   return (
     <div style={{ padding: '1rem' }}>
@@ -48,6 +55,10 @@ const RecordList = () => {
           </li>
         ))}
       </ul>
+
+      <p style={{ marginTop: '1rem', fontWeight: 'bold' }}>
+        合計：{total >= 0 ? '+': ''}{total}円
+      </p>
     </div>
   );
 };
